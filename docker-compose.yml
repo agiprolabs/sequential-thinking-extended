@@ -8,14 +8,14 @@ services:
       - NODE_ENV=production
       - DATA_PATH=/data
       - TRANSPORT_MODE=http
-      - PORT=3000
+      - PORT=3001
       - HOST=0.0.0.0
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
       - ./data:/data
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -50,8 +50,8 @@ services:
       - NODE_ENV=development
       - DATA_PATH=/data
       - TRANSPORT_MODE=http
-      - PORT=3000
+      - PORT=3001
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
       - ./data:/data
