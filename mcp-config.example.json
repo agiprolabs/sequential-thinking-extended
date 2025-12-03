@@ -3,12 +3,29 @@
     "sequential-thinking": {
       "command": "node",
       "args": ["dist/index.js"],
-      "cwd": "c:/dev/devpattern sequential",
+      "cwd": "/path/to/sequential-thinking-extended",
       "env": {
         "DATA_PATH": "./data",
         "DISABLE_THOUGHT_LOGGING": "false"
       },
       "disabled": false,
+      "alwaysAllow": [
+        "sequentialthinking",
+        "get_thinking_context",
+        "list_thinking_sessions"
+      ]
+    },
+    "sequential-thinking-docker": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "/path/to/data:/data",
+        "ghcr.io/agiprolabs/sequential-thinking-extended:latest"
+      ],
+      "disabled": true,
       "alwaysAllow": [
         "sequentialthinking",
         "get_thinking_context",
