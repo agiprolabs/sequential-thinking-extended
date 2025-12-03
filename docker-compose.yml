@@ -1,28 +1,57 @@
 services:
-  sequential-thinking:
-    image: ghcr.io/agiprolabs/sequential-thinking-extended:latest
-    container_name: sequential-thinking-extended
+  # HTTP mode - for cloud/multi-tenant deployment with Cloudflare Tunnel
+  devpattern:
+    image: ghcr.io/agiprolabs/devpattern:latest
+    container_name: devpattern
     restart: unless-stopped
     environment:
       - NODE_ENV=production
       - DATA_PATH=/data
+      - TRANSPORT_MODE=http
+      - PORT=3000
+      - HOST=0.0.0.0
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # STDIO mode - for local MCP client integration
+  devpattern-stdio:
+    image: ghcr.io/agiprolabs/devpattern:latest
+    container_name: devpattern-stdio
+    restart: unless-stopped
+    profiles:
+      - stdio
+    environment:
+      - NODE_ENV=production
+      - DATA_PATH=/data
+      - TRANSPORT_MODE=stdio
       - DISABLE_THOUGHT_LOGGING=false
     volumes:
       - ./data:/data
     stdin_open: true      # Required for MCP STDIO transport
     tty: true
 
-  # Alternative: build from source
-  # sequential-thinking-dev:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: sequential-thinking-dev
-  #   environment:
-  #     - NODE_ENV=development
-  #     - DATA_PATH=/data
-  #   volumes:
-  #     - ./data:/data
-  #   stdin_open: true
-  #   tty: true
-
+  # Development mode - build from source
+  devpattern-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: devpattern-dev
+    profiles:
+      - dev
+    environment:
+      - NODE_ENV=development
+      - DATA_PATH=/data
+      - TRANSPORT_MODE=http
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data

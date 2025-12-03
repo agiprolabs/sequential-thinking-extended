@@ -1,6 +1,6 @@
-# Sequential Thinking Extended
+# DevPattern
 
-An extended MCP (Model Context Protocol) server that builds on the official Sequential Thinking server with added context persistence and task management.
+An MCP (Model Context Protocol) server for structured problem-solving with context persistence, task management, and multi-tenant HTTP support.
 
 ## Features
 
@@ -16,6 +16,10 @@ An extended MCP (Model Context Protocol) server that builds on the official Sequ
 - **Auto-Documentation**: Generate documentation when thinking sessions complete
 - **Session Management**: List and retrieve historical sessions
 
+### Transport Modes
+- **STDIO**: For local MCP client integration (Claude Desktop, Cline, etc.)
+- **HTTP**: For cloud/multi-tenant deployment with session management
+
 ## Installation
 
 ```bash
@@ -28,17 +32,30 @@ npm run build
 
 ## Usage
 
-### Run Locally
+### Run Locally (STDIO)
 
 ```bash
 npm start
 ```
 
+### Run with HTTP Transport
+
+```bash
+# Environment variable
+TRANSPORT_MODE=http PORT=3000 npm start
+
+# Or using the npm script
+npm run start:http
+```
+
 ### Run with Docker
 
 ```bash
-# Build and start
+# HTTP mode (default) - for cloud deployment
 docker-compose up -d
+
+# STDIO mode - for local MCP clients
+docker-compose --profile stdio up devpattern-stdio
 
 # View logs
 docker-compose logs -f
@@ -49,30 +66,48 @@ docker-compose down
 
 ## MCP Configuration
 
-### Claude Desktop
+### Claude Desktop (STDIO)
 
 ```json
 {
   "mcpServers": {
-    "sequential-thinking": {
+    "devpattern": {
       "command": "node",
       "args": ["path/to/dist/index.js"],
       "env": {
-        "DATA_PATH": "/path/to/data"
+        "DATA_PATH": "/path/to/data",
+        "TRANSPORT_MODE": "stdio"
       }
     }
   }
 }
 ```
 
-### With Docker
+### Docker STDIO
 
 ```json
 {
   "mcpServers": {
-    "sequential-thinking": {
+    "devpattern": {
       "command": "docker",
-      "args": ["run", "--rm", "-i", "-v", "thinking-data:/data", "sequential-thinking-extended"]
+      "args": [
+        "run", "--rm", "-i",
+        "-e", "TRANSPORT_MODE=stdio",
+        "-v", "/path/to/data:/data",
+        "ghcr.io/agiprolabs/devpattern:latest"
+      ]
+    }
+  }
+}
+```
+
+### HTTP Transport (for cloud/remote servers)
+
+```json
+{
+  "mcpServers": {
+    "devpattern": {
+      "url": "http://localhost:3000/mcp"
     }
   }
 }
@@ -105,10 +140,10 @@ List all thinking sessions with status.
 ┌─────────────────────────────────────────┐
 │           MCP Client (AI)               │
 └─────────────────┬───────────────────────┘
-                  │ STDIO
+                  │ STDIO or HTTP
                   ▼
 ┌─────────────────────────────────────────┐
-│   Sequential Thinking Extended Server   │
+│        DevPattern MCP Server            │
 │  ┌───────────────────────────────────┐  │
 │  │ Layer 1: Sequential Thinking Core │  │
 │  └───────────────┬───────────────────┘  │
@@ -119,12 +154,34 @@ List all thinking sessions with status.
 └──────────────────┼──────────────────────┘
                    ▼
             Volume: /data
+                   ▲
+                   │ (For cloud deployment)
+┌──────────────────┴──────────────────────┐
+│         Cloudflare Tunnel               │
+│  tenant-xxx.devpattern.agi.pro → :3000  │
+└─────────────────────────────────────────┘
 ```
 
 ## Environment Variables
 
-- `DATA_PATH`: Path for persistent storage (default: `./data`)
-- `DISABLE_THOUGHT_LOGGING`: Set to `true` to disable console output
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `TRANSPORT_MODE` | `stdio` or `http` | `stdio` |
+| `PORT` | HTTP port (when `http` mode) | `3000` |
+| `HOST` | Bind address | `0.0.0.0` |
+| `DATA_PATH` | Path for persistent storage | `./data` |
+| `DISABLE_THOUGHT_LOGGING` | Disable console output | `false` |
+
+## HTTP Endpoints
+
+When running in HTTP mode:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/mcp` | POST | MCP JSON-RPC requests |
+| `/mcp` | GET | SSE stream for notifications |
+| `/mcp` | DELETE | Close session |
+| `/health` | GET | Health check |
 
 ## Development
 
@@ -139,4 +196,3 @@ npm test
 ## License
 
 MIT
-

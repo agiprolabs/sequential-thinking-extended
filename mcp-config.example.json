@@ -1,11 +1,13 @@
 {
   "mcpServers": {
-    "sequential-thinking": {
+    "devpattern": {
+      "_comment": "Local Node.js - STDIO transport",
       "command": "node",
       "args": ["dist/index.js"],
-      "cwd": "/path/to/sequential-thinking-extended",
+      "cwd": "/path/to/devpattern",
       "env": {
         "DATA_PATH": "./data",
+        "TRANSPORT_MODE": "stdio",
         "DISABLE_THOUGHT_LOGGING": "false"
       },
       "disabled": false,
@@ -15,16 +17,27 @@
         "list_thinking_sessions"
       ]
     },
-    "sequential-thinking-docker": {
+    "devpattern-docker-stdio": {
+      "_comment": "Docker container - STDIO transport",
       "command": "docker",
       "args": [
         "run",
         "-i",
         "--rm",
-        "-v",
-        "/path/to/data:/data",
-        "ghcr.io/agiprolabs/sequential-thinking-extended:latest"
+        "-e", "TRANSPORT_MODE=stdio",
+        "-v", "/path/to/data:/data",
+        "ghcr.io/agiprolabs/devpattern:latest"
       ],
+      "disabled": true,
+      "alwaysAllow": [
+        "sequentialthinking",
+        "get_thinking_context",
+        "list_thinking_sessions"
+      ]
+    },
+    "devpattern-http": {
+      "_comment": "HTTP transport - connects to running server (for cloud/multi-tenant)",
+      "url": "http://localhost:3000/mcp",
       "disabled": true,
       "alwaysAllow": [
         "sequentialthinking",
@@ -34,4 +47,3 @@
     }
   }
 }
-
