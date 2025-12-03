@@ -1,0 +1,20 @@
+services:
+  sequential-thinking:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sequential-thinking-extended
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATA_PATH=/data
+      - DISABLE_THOUGHT_LOGGING=false
+    volumes:
+      - thinking-data:/data
+    stdin_open: true      # Required for MCP STDIO transport
+    tty: true
+
+volumes:
+  thinking-data:
+    driver: local
+
