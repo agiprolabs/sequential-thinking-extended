@@ -5,6 +5,7 @@
 
 import type { Storage } from './storage/storage.js';
 import type { DocumentationEntry, ThoughtRecord, TaskCommit } from './types.js';
+import { getEventPublisher } from './event-publisher.js';
 
 export class DocumentationGenerator {
   private storage: Storage;
@@ -45,6 +46,16 @@ export class DocumentationGenerator {
     session.status = 'completed';
     session.updatedAt = new Date();
     await this.storage.updateSession(session);
+
+    // Publish session.finalized event to Redis for doc-worker
+    const eventPublisher = getEventPublisher();
+    await eventPublisher.publishSessionFinalized({
+      sessionId,
+      thoughtCount: thoughts.length,
+      taskCount: tasks.length,
+      tier: 'basic',
+      outcome: 'completed',
+    });
 
     return doc;
   }
